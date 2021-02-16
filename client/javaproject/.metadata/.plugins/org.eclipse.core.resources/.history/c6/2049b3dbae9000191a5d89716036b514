@@ -1,0 +1,119 @@
+package sample;
+
+import javax.swing.*;
+import javax.swing.border.*;
+import java.awt.event.*;
+import java.awt.*;
+import java.io.*;
+import java.net.*;
+public class UI_TabChat extends JPanel {
+	
+	JPanel TabChat;
+	JTextArea inputText,outputText;
+	String res_message,req_message;
+	
+	Socket socket = null;            //Server와 통신하기 위한 Socket
+    DataInputStream in = null;        //Server로부터 데이터를 읽어들이기 위한 입력스트림
+    DataOutputStream out = null;   
+	
+	//SoftBevelBorder inputText_Border;
+	LineBorder inputText_Border;
+	UI_TabChat(){
+		
+		 try {
+			socket = new Socket("192.168.0.3",5000);
+			in = new DataInputStream(socket.getInputStream());            
+	         
+	         out = new DataOutputStream(socket.getOutputStream());
+	         
+	         out.writeUTF(UI_JFrame.User); //현재 닉네임 서버로 전송
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} //서버접속
+		 
+		//chat tap 설정
+		TabChat = new JPanel();
+		this.setBackground(Color.WHITE);
+		setLayout(new BorderLayout());
+		
+		
+		
+		
+		//채팅입력창 설정
+		inputText = new JTextArea("",5,20);
+		inputText_Border = new LineBorder(Color.black,2);
+		inputText.setBorder(inputText_Border);
+		inputText.setLineWrap(true);//자동줄바꿈
+		inputText.addKeyListener(new ChatKeyListener());
+		add(inputText,BorderLayout.SOUTH);
+		
+		
+		
+		
+		//채팅내용 확인 , static으로 선언된 socket method 필요!!
+		outputText = new JTextArea();
+		outputText.setEditable(false);
+		add(new JScrollPane(outputText),BorderLayout.CENTER);
+		
+	
+		
+	}
+	
+	
+	//keylistener 클래스 생성 
+	class ChatKeyListener extends KeyAdapter {
+		
+		
+
+		public void keyPressed(KeyEvent e) {
+			// TODO Auto-generated method stub
+			if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+				req_message = inputText.getText();
+				outputText.append(UI_JFrame.User+" : ");
+				outputText.append(req_message+"\n");
+				inputText.setText("");
+				
+				try {
+					out.writeUTF(req_message);
+				} catch (IOException e2) {
+					// TODO Auto-generated catch block
+					outputText.append("Bot : 서버와의 접속이 원할하지 않습니다.\n");
+				}
+				
+				
+				
+				//서버로도 부터 request메시지 전송 클래스 필요
+				
+				try {
+					res_message = in.readUTF();
+					outputText.append("Bot : ");
+					outputText.append(res_message+"\n");
+					inputText.setText("");
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					outputText.append("Bot : 오류가 발생하였습니다.");
+				}
+				
+				
+				
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+}
+	
+
+
+
+
+
+
+
+
